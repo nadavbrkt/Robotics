@@ -31,29 +31,27 @@ private:
 	int inflationRadius;
 
 	vector<unsigned char> image;
-	vector<unsigned char> inflateObstaclesImage;
 	Grid map;
 	Grid fineGrid; // cell size equal to robot size
-	Grid coarseGrid; // cell size is 4*robot size
 
-
-
-	void buildCoarseGrid();
 
 	void printGrid(const Grid &grid) const;			//
 	void inflateCell(Grid &tempMap, int i, int j);	//
 
 public:
-	void buildFineGrid();
+	Grid coarseGrid; // cell size is 4*robot size
+	void buildCoarseGrid();							//
+	void buildFineGrid();							//
 	Map(float mapResolution, float robotSize); 		//
 	void loadMap(const char* filePath);				//
-	void saveMap(const char* filePath);				//
+	void saveMapToImage(const char* filePath);		//
+	void saveFineGridToImage(const char* filePath);	//
+	void saveCoarseGridToImage(const char* filePath);//
 	void convertImageToGrid();						//
-	void convertGridToImage();						//
 	void inflateObstacles();						//
-	void print();									//
+	void printMap();								//
+	void printCoarseGrid();
 	virtual ~Map();									//
-	void saveGrid(const char * filePath);
 
 };
 

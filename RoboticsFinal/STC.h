@@ -21,6 +21,8 @@ private:
 	Map &map;
 	Position initialRobotPos;
 	vector<vector<Node *> > graph;
+	int graphHight;
+	int graphWidth;
 
 	void buildGraph();
 	void DFS(Node *node);

@@ -6,10 +6,9 @@
  */
 
 #include "Map.h"
+#include "STC.h"
 
 using namespace std;
-
-void saveMapToImage();
 
 int main() {
 	Map map(0.02,0.45);
@@ -17,22 +16,20 @@ int main() {
 	map.loadMap("roboticLabMap.png");
 	map.convertImageToGrid();
 	//map.print();
-	map.buildFineGrid();
 	map.inflateObstacles();
-	cout<< "ok0" <<endl;
-	//map.print();
-	map.convertGridToImage();
-	cout<< "ok1" <<endl;
-	map.saveMap("roboticLabMap2.png");
-	map.saveGrid("roboticLabGrid.png");
-	//map.print();
+	map.buildFineGrid();
+	map.buildCoarseGrid();
+	//map.saveMapToImage("LabInflateObsticale.png");
+	//map.saveFineGridToImage("LabFineGrid.png");
+	//map.saveCoarseGridToImage("LabCoarseGrid.png");
+	map.printCoarseGrid();
+	cout << endl << "ok1 " << endl;
+
+	STC stc(map, Position(6,8));
+	stc.buildSpanningTree();
+
 
 
 	return 0;
 }
 
-
-void saveMapToImage(const char* filePath, )
-{
-	lodepng::encode(filePath, inflateObstaclesImage, mapWidth, mapHeight);
-}

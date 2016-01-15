@@ -76,13 +76,25 @@ void Map::inflateObstacles()
 	}
 }
 
-void Map::print()
+void Map::printMap()
 {
 	for (int i = 0; i < mapHeight; ++i)
 	{
 		for (int j = 0; j < mapWidth; ++j)
 		{
 			cout << map[i][j];
+		}
+		cout << endl;
+	}
+}
+
+void Map::printCoarseGrid()
+{
+	for (int i = 0; i < mapHeight/robotSizeInCells/2; ++i)
+	{
+		for (int j = 0; j < mapWidth/robotSizeInCells/2; ++j)
+		{
+			cout << coarseGrid[i][j] << " ";
 		}
 		cout << endl;
 	}
@@ -106,9 +118,10 @@ void Map::inflateCell(vector<vector<bool> > &tempMap, int i, int j)
 	}
 }
 
-void Map::convertGridToImage()
+void Map::saveMapToImage(const char* filePath)
 {
-	inflateObstaclesImage.resize(mapHeight*mapWidth*4);
+	vector<unsigned char> temp;
+	temp.resize(mapHeight*mapWidth*4);
 	int imageCounter = 0;
 	for (int i = 0; i < mapHeight; ++i)
 	{
@@ -116,38 +129,99 @@ void Map::convertGridToImage()
 		{
 			if (map[i][j] == OBSTACLE)
 			{
-				inflateObstaclesImage[imageCounter] = IMAGE_OBSTACLE;
-				inflateObstaclesImage[imageCounter+1] = IMAGE_OBSTACLE;
-				inflateObstaclesImage[imageCounter+2] = IMAGE_OBSTACLE;
-				inflateObstaclesImage[imageCounter+3] = 255;
+				temp[imageCounter] = IMAGE_OBSTACLE;
+				temp[imageCounter+1] = IMAGE_OBSTACLE;
+				temp[imageCounter+2] = IMAGE_OBSTACLE;
+				temp[imageCounter+3] = 255;
 			}
 			else
 			{
-				inflateObstaclesImage[imageCounter] = NOT_IMAGE_OBSTACLE;
-				inflateObstaclesImage[imageCounter+1] = NOT_IMAGE_OBSTACLE;
-				inflateObstaclesImage[imageCounter+2] = NOT_IMAGE_OBSTACLE;
-				inflateObstaclesImage[imageCounter+3] = NOT_IMAGE_OBSTACLE;
+				temp[imageCounter] = NOT_IMAGE_OBSTACLE;
+				temp[imageCounter+1] = NOT_IMAGE_OBSTACLE;
+				temp[imageCounter+2] = NOT_IMAGE_OBSTACLE;
+				temp[imageCounter+3] = NOT_IMAGE_OBSTACLE;
 			}
 			imageCounter += 4;
 		}
 	}
+
+	lodepng::encode(filePath, temp, mapWidth, mapHeight);
 }
 
-void Map::saveMap(const char* filePath)
+void Map::saveFineGridToImage(const char* filePath)
 {
-	lodepng::encode(filePath, inflateObstaclesImage, mapWidth, mapHeight);
+	int fineMapHeight = mapHeight/robotSizeInCells;
+	int fineMapWidth = mapWidth/robotSizeInCells;
+	vector<unsigned char> temp;
+
+	temp.resize(fineMapHeight*fineMapWidth*4);
+	int imageCounter = 0;
+	for (int i = 0; i < fineMapHeight; ++i)
+	{
+		for (int j = 0; j < fineMapWidth; ++j)
+		{
+			if (fineGrid[i][j] == OBSTACLE)
+			{
+				temp[imageCounter] = IMAGE_OBSTACLE;
+				temp[imageCounter+1] = IMAGE_OBSTACLE;
+				temp[imageCounter+2] = IMAGE_OBSTACLE;
+				temp[imageCounter+3] = 255;
+			} 			else
+			{
+				temp[imageCounter] = NOT_IMAGE_OBSTACLE;
+				temp[imageCounter+1] = NOT_IMAGE_OBSTACLE;
+				temp[imageCounter+2] = NOT_IMAGE_OBSTACLE;
+				temp[imageCounter+3] = NOT_IMAGE_OBSTACLE;
+			}
+			imageCounter += 4;
+		}
+	}
+
+	lodepng::encode(filePath, temp, fineMapWidth, fineMapHeight);
+}
+
+void Map::saveCoarseGridToImage(const char* filePath)
+{
+	int coarseMapHeight = mapHeight/robotSizeInCells/2;
+	int coarseMapWidth = mapWidth/robotSizeInCells/2;
+	vector<unsigned char> temp;
+
+	temp.resize(coarseMapHeight*coarseMapWidth*4);
+	int imageCounter = 0;
+	for (int i = 0; i < coarseMapHeight; ++i)
+	{
+		for (int j = 0; j < coarseMapWidth; ++j)
+		{
+			if (coarseGrid[i][j] == OBSTACLE)
+			{
+				temp[imageCounter] = IMAGE_OBSTACLE;
+				temp[imageCounter+1] = IMAGE_OBSTACLE;
+				temp[imageCounter+2] = IMAGE_OBSTACLE;
+				temp[imageCounter+3] = 255;
+			}
+			else
+			{
+				temp[imageCounter] = NOT_IMAGE_OBSTACLE;
+				temp[imageCounter+1] = NOT_IMAGE_OBSTACLE;
+				temp[imageCounter+2] = NOT_IMAGE_OBSTACLE;
+				temp[imageCounter+3] = NOT_IMAGE_OBSTACLE;
+			}
+			imageCounter += 4;
+		}
+	}
+
+	lodepng::encode(filePath, temp, coarseMapWidth, coarseMapHeight);
 }
 
 void Map::buildFineGrid()
 {
-
 	int fineMapHeight = mapHeight/robotSizeInCells;
 	int fineMapWidth = mapWidth/robotSizeInCells;
 
 	// Realloc 2D array
 	fineGrid.resize(fineMapHeight);
 	for (int i=0; i < (fineMapHeight); ++i)
-			fineGrid[i].resize(fineMapWidth/robotSizeInCells);
+			fineGrid[i].resize(fineMapWidth);
 
 
 	// For cell in fineGrid
@@ -181,36 +255,45 @@ void Map::buildFineGrid()
 	}
 }
 
-void Map::saveGrid(const char * filePath)
+void Map::buildCoarseGrid()
 {
-	vector<unsigned char> tmp;
-	int fineMapHeight = mapHeight/robotSizeInCells;
-	int fineMapWidth = mapWidth/robotSizeInCells;
+	int coarseMapHeight = mapHeight/robotSizeInCells/2;
+	int coarseMapWidth = mapWidth/robotSizeInCells/2;
 
+	// Realloc 2D array
+	coarseGrid.resize(coarseMapHeight);
+	for (int i=0; i < (coarseMapHeight); ++i)
+		coarseGrid[i].resize(coarseMapWidth);
 
-	tmp.resize(fineMapHeight*fineMapWidth*4);
-	int imageCounter = 0;
-	for (int i = 0; i < fineMapHeight; ++i)
+	// For cell in coarseGrid
+	for (int coarseI = 0; coarseI < coarseMapHeight; ++coarseI)
 	{
-		for (int j = 0; j < fineMapWidth; ++j)
+		for (int coarseJ = 0; coarseJ < coarseMapWidth; ++coarseJ)
 		{
-			if (fineGrid[i][j] == OBSTACLE)
+
+			// For every cell
+			bool flag = true;
+			int i = (coarseI*2);
+
+			while (((i < ((coarseI+1)*2)) && (flag)))
 			{
-				tmp[imageCounter] = IMAGE_OBSTACLE;
-				tmp[imageCounter+1] = IMAGE_OBSTACLE;
-				tmp[imageCounter+2] = IMAGE_OBSTACLE;
-				tmp[imageCounter+3] = 255;
+				int j = (coarseJ*2);
+				while (j <((coarseJ+1)*2))
+				{
+					if (fineGrid[i][j] == OBSTACLE)
+					{
+						coarseGrid[coarseI][coarseJ] = OBSTACLE;
+						flag = false;
+					}
+					++j;
+				}
+				++i;
 			}
-			else
+			if (flag)
 			{
-				tmp[imageCounter] = NOT_IMAGE_OBSTACLE;
-				tmp[imageCounter+1] = NOT_IMAGE_OBSTACLE;
-				tmp[imageCounter+2] = NOT_IMAGE_OBSTACLE;
-				tmp[imageCounter+3] = NOT_IMAGE_OBSTACLE;
+				coarseGrid[coarseI][coarseJ] = NOT_OBSTACLE;
 			}
-			imageCounter += 4;
 		}
 	}
-
-	lodepng::encode(filePath, tmp, fineMapWidth, fineMapHeight);
 }
+
